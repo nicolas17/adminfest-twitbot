@@ -3,11 +3,14 @@
 import configparser
 import peewee
 import datetime
+import sys
+import os
+import jsonpickle
 
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
 from tweepy import Stream
-from tweepy import API
+from tweepy import API, Cursor
 
 from model import Tweet, User, BeerCode
 
@@ -37,7 +40,7 @@ class StdOutListener(StreamListener):
         print(status.user.id, status.user.description)
 
         new_user, _ = User.get_or_create(user_id=status.user.id)
-        new_twit, _ = Tweet.get_or_create(user=new_user, status_id=status.id,message=status.text)
+        new_twit, _ = Tweet.get_or_create(user=new_user, status_id=status.id,text=status.text)
 
 
         return True
@@ -54,11 +57,39 @@ if __name__ == '__main__':
     auth = OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
 
-    api = API(auth)
+    api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
     if (not api):
         print ("Problem connecting to API")
 
-    # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
+    searchQuery = '%23downtime99999'
 
+    # Maximum number of tweets we want to collect
+    maxTweets = 1000000
+
+    # The twitter Search API allows up to 100 tweets per query
+    tweetsPerQry = 100
+
+    tweetCount = 0
+
+    # Open a text file to save the tweets to
+    with open('backlog.json', 'w') as f:
+
+        # Tell the Cursor method that we want to use the Search API (api.search)
+        # Also tell Cursor our query, and the maximum number of tweets to return
+        for tweet in Cursor(api.search, q=searchQuery).items(maxTweets):
+
+            new_user, _ = User.get_or_create(user_id=tweet.user.id)
+            new_twit, _ = Tweet.get_or_create(user=new_user, status_id=tweet.id, text=tweet.text,json=jsonpickle.encode(tweet._json, unpicklable=False))
+
+            print(tweet.user.id)
+            # Write the JSON format to the text file, and add one to the number of tweets we've collected
+            f.write(jsonpickle.encode(tweet._json, unpicklable=False) + '\n')
+            tweetCount += 1
+
+        # Display how many tweets we have collected
+        print("Downloaded {0} tweets".format(tweetCount))
+
+    # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
+    exit(0)
     stream = Stream(auth, l)
-    stream.filter(track=['rating'])
+    stream.filter(track=['downtime99999'])

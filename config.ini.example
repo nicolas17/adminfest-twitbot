@@ -1,5 +1,8 @@
 [credentials]
-consumer_key=NNNN
-consumer_secret=NNNN
-access_token=nNNN
-access_token_secret=NNNNNN
+consumer_key=
+consumer_secret=
+access_token=
+access_token_secret=
+
+[sysarmy]
+max_beers=3

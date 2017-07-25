@@ -1,8 +1,11 @@
 from peewee import *
 import datetime
+import random
 
 db = SqliteDatabase('adminfest.db')
 
+def gen_hex_colour_code():
+   return ''.join([random.choice('0123456789ABCDEF') for x in range(6)])
 
 class BaseModel(Model):
     class Meta:
@@ -15,15 +18,17 @@ class User(BaseModel):
     """
     #username = CharField(unique=True)
     user_id = TextField(unique=True)
+    beers = IntegerField(default=0)
 
 
 class BeerCode(BaseModel):
     """
     ORM model of the BeerCode table
     """
-    beer_code = TextField()
-    user = ForeignKeyField(User, related_name='users')
-    timestamp = DateTimeField()
+    beer_code = TextField(unique=True)
+    user_id = TextField(default="")
+    timestamp = DateTimeField(default="")
+    used = BooleanField(default=False)
 
 
 class Tweet(BaseModel):
@@ -32,9 +37,13 @@ class Tweet(BaseModel):
     """
     user = ForeignKeyField(User, related_name='tweets')
     status_id = TextField(unique=True)
-    message = TextField()
+    text = TextField()
+    json = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
     is_published = BooleanField(default=True)
+    processed = BooleanField(default=False)
+    process_try = IntegerField(default=0)
+    beer_code = TextField(default="")
 
 
 if __name__ == "__main__":
@@ -53,3 +62,8 @@ if __name__ == "__main__":
     except OperationalError:
         print("Tweet table already exists!")
 
+    #generate codes
+    for n in range(50):
+        code = gen_hex_colour_code()
+        beer_code = BeerCode.create(beer_code=code)
+        beer_code.save()
