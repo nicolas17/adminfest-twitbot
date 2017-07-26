@@ -66,23 +66,18 @@ if __name__ == '__main__':
 
     tweetCount = 0
 
-    # Open a text file to save the tweets to
-    with open('backlog.json', 'w') as f:
+    # Tell the Cursor method that we want to use the Search API (api.search)
+    # Also tell Cursor our query, and the maximum number of tweets to return
+    for tweet in Cursor(api.search, q=searchQuery).items(maxTweets):
 
-        # Tell the Cursor method that we want to use the Search API (api.search)
-        # Also tell Cursor our query, and the maximum number of tweets to return
-        for tweet in Cursor(api.search, q=searchQuery).items(maxTweets):
+        new_user, _ = User.get_or_create(user_id=tweet.user.id)
+        new_twit, _ = Tweet.get_or_create(user=new_user, status_id=tweet.id, text=tweet.text,json=jsonpickle.encode(tweet._json, unpicklable=False))
 
-            new_user, _ = User.get_or_create(user_id=tweet.user.id)
-            new_twit, _ = Tweet.get_or_create(user=new_user, status_id=tweet.id, text=tweet.text,json=jsonpickle.encode(tweet._json, unpicklable=False))
+        print(tweet.user.id)
+        tweetCount += 1
 
-            print(tweet.user.id)
-            # Write the JSON format to the text file, and add one to the number of tweets we've collected
-            f.write(jsonpickle.encode(tweet._json, unpicklable=False) + '\n')
-            tweetCount += 1
-
-        # Display how many tweets we have collected
-        print("Downloaded {0} tweets".format(tweetCount))
+    # Display how many tweets we have collected
+    print("Downloaded {0} tweets".format(tweetCount))
 
     # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
     exit(0)
