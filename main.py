@@ -29,6 +29,21 @@ consumer_secret = config['credentials']['consumer_secret']
 access_token = config['credentials']['access_token']
 access_token_secret = config['credentials']['access_token_secret']
 
+def handle_tweet(status):
+    # Ignore retweets; we want original tweets with the hashtag
+    if hasattr(status, "retweeted_status"):
+        return None
+
+    # Ignore tweets from "ourselves" and other organization accounts,
+    # since they aren't *people* attending AdminFest
+    if status.user.screen_name.tolower() in ('sysarmy', 'nerdearla', 'IT_Floss'):
+        return None
+
+    new_user, _ = User.get_or_create(user_id=status.user.id)
+    new_twit, _ = Tweet.get_or_create(user=new_user, status_id=status.id, text=status.text)
+
+    return new_twit
+
 class StdOutListener(StreamListener):
     """ A listener handles tweets that are received from the stream.
     This is a basic listener that just prints received tweets to stdout.
@@ -39,9 +54,7 @@ class StdOutListener(StreamListener):
         print("-")
         print(status.user.id, status.user.description)
 
-        new_user, _ = User.get_or_create(user_id=status.user.id)
-        new_twit, _ = Tweet.get_or_create(user=new_user, status_id=status.id,text=status.text)
-
+        handle_tweet(status)
 
         return True
     #def on_private_message
@@ -70,8 +83,7 @@ if __name__ == '__main__':
     # Also tell Cursor our query, and the maximum number of tweets to return
     for tweet in Cursor(api.search, q=searchQuery).items(maxTweets):
 
-        new_user, _ = User.get_or_create(user_id=tweet.user.id)
-        new_twit, _ = Tweet.get_or_create(user=new_user, status_id=tweet.id, text=tweet.text,json=jsonpickle.encode(tweet._json, unpicklable=False))
+        handle_tweet(tweet)
 
         print(tweet.user.id)
         tweetCount += 1
