@@ -57,7 +57,7 @@ if __name__ == '__main__':
     auth = config.get_tweepy_auth()
     api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-    searchQuery = '%23downtime99999'
+    searchQuery = '%23' + config.hashtag()
 
     # Maximum number of tweets we want to collect
     maxTweets = 1000000
@@ -77,6 +77,5 @@ if __name__ == '__main__':
     print("Downloaded {0} tweets".format(tweetCount))
 
     # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
-    exit(0)
     stream = Stream(auth, l)
-    stream.filter(track=['downtime99999'])
+    stream.filter(track=[config.hashtag()])

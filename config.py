@@ -11,7 +11,7 @@ class BotConfig:
             if key not in self.config['credentials']:
                 raise RuntimeError("Required setting %s not found in [credentials]" % key)
 
-        for key in ['max_beers']:
+        for key in ['max_beers', 'hashtag']:
             if key not in self.config['sysarmy']:
                 raise RuntimeError("Required setting %s not found in [sysarmy]" % key)
 
@@ -29,3 +29,6 @@ class BotConfig:
 
     def max_beers(self):
         return int(self.config['sysarmy']['max_beers'])
+
+    def hashtag(self):
+        return self.config['sysarmy']['hashtag']
