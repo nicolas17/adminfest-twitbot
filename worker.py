@@ -21,12 +21,14 @@ config = BotConfig("config.ini")
 # horrible
 #while True:
 for n in range(50):
-    #time.sleep(1)
 
     #get 1 twtit to process from database
-    tweet = Tweet.select().where(Tweet.processed==False & Tweet.process_try <= config.max_beers()).get()
-    if tweet is None:
-        break
+    try:
+        tweet = Tweet.select().where((Tweet.processed==False) & (Tweet.process_try <= config.max_beers())).get()
+    except peewee.DoesNotExist:
+        print("No more unprocessed tweets; sleeping...")
+        time.sleep(5)
+        continue
 
     print(tweet.user.user_id, "has ",tweet.user.beers," codes assigned")
 
