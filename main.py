@@ -36,7 +36,7 @@ def handle_tweet(status):
 
     # Ignore tweets from "ourselves" and other organization accounts,
     # since they aren't *people* attending AdminFest
-    if status.user.screen_name.lower() in ('sysarmy', 'nerdearla', 'IT_Floss'):
+    if status.user.screen_name.lower() in ('sysarmy', 'nerdearla', 'it_floss'):
         return None
 
     new_user, _ = User.get_or_create(user_id=status.user.id)
