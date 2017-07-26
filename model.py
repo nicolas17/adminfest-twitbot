@@ -38,7 +38,6 @@ class Tweet(BaseModel):
     user = ForeignKeyField(User, related_name='tweets')
     status_id = TextField(unique=True)
     text = TextField()
-    json = TextField()
     created_date = DateTimeField(default=datetime.datetime.now)
     is_published = BooleanField(default=True)
     processed = BooleanField(default=False)

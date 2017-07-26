@@ -5,7 +5,6 @@ import peewee
 import datetime
 import sys
 import os
-import jsonpickle
 
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
