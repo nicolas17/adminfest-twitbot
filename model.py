@@ -63,7 +63,8 @@ if __name__ == "__main__":
         print("Tweet table already exists!")
 
     #generate codes
-    for n in range(50):
-        code = gen_hex_colour_code()
-        beer_code = BeerCode.create(beer_code=code)
-        beer_code.save()
+    with db.atomic():
+        for n in range(50):
+            code = gen_hex_colour_code()
+            beer_code = BeerCode.create(beer_code=code)
+            beer_code.save()
