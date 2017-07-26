@@ -8,26 +8,11 @@ import os
 import jsonpickle
 
 from tweepy.streaming import StreamListener
-from tweepy import OAuthHandler
 from tweepy import Stream
 from tweepy import API, Cursor
 
 from model import Tweet, User, BeerCode
-
-
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
-# Go to http://apps.twitter.com and create an app.
-# The consumer key and secret will be generated for you after
-consumer_key = config['credentials']['consumer_key']
-consumer_secret = config['credentials']['consumer_secret']
-
-# After the step above, you will be redirected to your app's page.
-# Create an access token under the the "Your access token" section
-access_token = config['credentials']['access_token']
-access_token_secret = config['credentials']['access_token_secret']
+from config import BotConfig
 
 def handle_tweet(status):
     # Ignore retweets; we want original tweets with the hashtag
@@ -64,12 +49,12 @@ class StdOutListener(StreamListener):
         print(status)
 
 if __name__ == '__main__':
+    config = BotConfig("config.ini")
 
     # Faltaria hacer la parte de buscar para atras, y encolar en algo tipo previous_queue para que el worker decida si tiene que aceptarlos o no. en sucesivos runs el worker ya tiene en su db guardados los twits que proceso o skipeo para no reprocesarlos.
     l = StdOutListener()
-    auth = OAuthHandler(consumer_key, consumer_secret)
-    auth.set_access_token(access_token, access_token_secret)
 
+    auth = config.get_tweepy_auth()
     api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
     searchQuery = '%23downtime99999'

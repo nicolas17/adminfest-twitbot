@@ -12,13 +12,11 @@ from tweepy import Stream
 from tweepy import API, Cursor
 
 from model import Tweet, User, BeerCode
+from config import BotConfig
 
 import time
 
-
-config = configparser.ConfigParser()
-config.read('config.ini')
-
+config = BotConfig("config.ini")
 
 # horrible
 #while True:
@@ -26,14 +24,14 @@ for n in range(50):
     #time.sleep(1)
 
     #get 1 twtit to process from database
-    tweet = Tweet.select().where(Tweet.processed==False & Tweet.process_try<=int(config['sysarmy']['max_beers'])).get()
+    tweet = Tweet.select().where(Tweet.processed==False & Tweet.process_try <= config.max_beers()).get()
     if tweet is None:
         break
 
     print(tweet.user.user_id, "has ",tweet.user.beers," codes assigned")
 
     #check if user had more than 3 beers
-    if (tweet.user.beers <= int(config['sysarmy']['max_beers'])):
+    if (tweet.user.beers <= config.max_beers()):
         print ("Assign Beer to user")
         #Get Free Beer Code
         beer_codes = BeerCode.select().where(BeerCode.used==False)
