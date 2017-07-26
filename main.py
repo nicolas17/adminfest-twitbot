@@ -58,16 +58,11 @@ if __name__ == '__main__':
     auth.set_access_token(access_token, access_token_secret)
 
     api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
-    if (not api):
-        print ("Problem connecting to API")
 
     searchQuery = '%23downtime99999'
 
     # Maximum number of tweets we want to collect
     maxTweets = 1000000
-
-    # The twitter Search API allows up to 100 tweets per query
-    tweetsPerQry = 100
 
     tweetCount = 0
 
