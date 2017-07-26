@@ -36,9 +36,9 @@ class Tweet(BaseModel):
     ORM model of the Tweet table
     """
     user = ForeignKeyField(User, related_name='tweets')
-    status_id = TextField(unique=True)
-    text = TextField()
-    json = TextField()
+    status_id = BigIntegerField(unique=True)
+    text = TextField(default="")
+    json = TextField(default="")
     created_date = DateTimeField(default=datetime.datetime.now)
     is_published = BooleanField(default=True)
     processed = BooleanField(default=False)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     #generate codes
     with db.atomic():
-        for n in range(50):
+        for n in range(200):
             code = gen_hex_colour_code()
             beer_code = BeerCode.create(beer_code=code)
             beer_code.save()

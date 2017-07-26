@@ -36,14 +36,23 @@ class StdOutListener(StreamListener):
     def on_status(self, status):
         # aca levantar el status y encolarlo para el worker.
         print(status.id,' ', status.text)
-        print("-")
-        print(status.user.id, status.user.description)
 
         new_user, _ = User.get_or_create(user_id=status.user.id)
-        new_twit, _ = Tweet.get_or_create(user=new_user, status_id=status.id,text=status.text)
+        try:
+            tweet = Tweet.select().where(Tweet.status_id == status.id).get()
+        except Tweet.DoesNotExist:
+            tweet = None
 
+        if tweet is not None:
+            print("stream: already saved", status.user.id, status.id_str)
+        else:
+            new_twit = Tweet.create(user=new_user, status_id=status.id, text=status.text,json=jsonpickle.encode(status._json, unpicklable=False))
+            new_twit.save()
+            print("stream: new ", status.user.id)
 
         return True
+
+
     #def on_private_message
         # tambien podemos monitorear el inbox de DMs y otros estados.
 
@@ -66,25 +75,31 @@ if __name__ == '__main__':
 
     tweetCount = 0
 
-    # Open a text file to save the tweets to
-    with open('backlog.json', 'w') as f:
+    # Tell the Cursor method that we want to use the Search API (api.search)
+    # Also tell Cursor our query, and the maximum number of tweets to return
+    for status in Cursor(api.search, q=searchQuery).items(maxTweets):
 
-        # Tell the Cursor method that we want to use the Search API (api.search)
-        # Also tell Cursor our query, and the maximum number of tweets to return
-        for tweet in Cursor(api.search, q=searchQuery).items(maxTweets):
+        new_user, _ = User.get_or_create(user_id=status.user.id)
+        try:
+            tweet = Tweet.select().where(Tweet.status_id == status.id).get()
+        except Tweet.DoesNotExist:
+            tweet = None
 
-            new_user, _ = User.get_or_create(user_id=tweet.user.id)
-            new_twit, _ = Tweet.get_or_create(user=new_user, status_id=tweet.id, text=tweet.text,json=jsonpickle.encode(tweet._json, unpicklable=False))
+        if tweet is not None:
+            print("search: already saved", status.user.id, status.id_str)
+        else:
+            new_twit = Tweet.create(user=new_user, status_id=status.id, text=status.text,json=jsonpickle.encode(status._json, unpicklable=False))
+            new_twit.save()
+            print("search: new ", status.user.id)
 
-            print(tweet.user.id)
-            # Write the JSON format to the text file, and add one to the number of tweets we've collected
-            f.write(jsonpickle.encode(tweet._json, unpicklable=False) + '\n')
-            tweetCount += 1
+        # Write the JSON format to the text file, and add one to the number of tweets we've collected
+        tweetCount += 1
 
-        # Display how many tweets we have collected
-        print("Downloaded {0} tweets".format(tweetCount))
-
-    # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
+    # Display how many tweets we have collected
+    print("Downloaded {0} tweets".format(tweetCount))
     exit(0)
+    # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
+    print("Starting stream to db")
     stream = Stream(auth, l)
-    stream.filter(track=['downtime99999'])
+    # stream.filter(track=['downtime99999'])
+    stream.filter(track=['bitch'])
