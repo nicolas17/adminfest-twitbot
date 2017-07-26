@@ -4,7 +4,6 @@
 import logging
 import multiprocessing as mp
 from configparser import ConfigParser
-from collections import OrderedDict
 import tweepy as tw
 
 logger = logging.getLogger(__name__)
@@ -80,9 +79,8 @@ class TwitterStreamer(object):
     Stream from the Twitter.
     """
 
-    def __init__(self, twauth, queue):
+    def __init__(self, twauth):
         self._twauth = twauth
-        self._q = queue
         self._stream_listener = TwStreamListener()
         self._stream_listener.on_connect = self._on_status
         self._stream_listener.on_status = self._on_status
@@ -96,7 +94,6 @@ class TwitterStreamer(object):
 
     def _on_status(self, status):
         logger.debug('Status Received: %s', status)
-        self._q.put(status)
 
     def _on_error(self, status_code):
         logger.error('Receive an error - %i', status_code)
@@ -116,7 +113,6 @@ class TwitterDeEmer(object):
     """
     Send DMs, try to fix if can't do it
     """
-
     def __init__(self, twauth):
         self._twauth = twauth
         self._can_DM = OrderedDict()
@@ -131,32 +127,18 @@ class TwitterDeEmer(object):
         status = self.api.update_status("""Hey! {} seguime para pasarte x DM """
                                         """codigo!""".format(user))
         # NOTE: If we go multiprocess we can wait and _check_DM again.
-        return status
 
     def send_DM(self, user, code):
         able2DM = False
         if user not in self._can_DM:
             able2DM = self._check_DM(user)
-            self._can_DM[user] = (able2DM, 1)
+            self._can_DM [user]=(able2DM, 1)
         if not self._can_DM[user][0]:
-            if self._can_DM[user][1] > 3:
+            if self._can_DM[user][1]>3:
                 return None
-            able2DM = self._fix_DM_issue(user)
+            able2DM = self._fix_DM_issue(qlixed)
             self._can_DM[user] = (able2DM, self._can_DM[user][1]+1)
             if not able2DM:  # TODO: Think how to free the beer code to reuse
                 return None
-        return self._twauth.api.send_direct_message(
-            user, 'Borrachin code: {code}'.format(code))
-
-if __name__ == "__main__":
-    c = get_config('config.ini')
-    ta = TwitterApi(c)
-    #q = mp.Queue()
-    #ts = TwitterStreamer(ta, q)
-    #stream_args = {'track': ['#d99'}, }
-    #p = mp.Process(target=ts.stream, kwargs=stream_args)
-    #p.start()
-    #print(str(q.get())) #Se puede usar q.get(timeout=30))
-    #p.terminate()
-    tdm = TwitterDeEmer(ta)
-    tdm.send_DM('@jedux', 'C4F3')
+        return self._twauth.api.send_direct_message(user,
+                                             'Borrachin code: {code}'.format(code))
