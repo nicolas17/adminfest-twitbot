@@ -53,7 +53,7 @@ for n in range(50):
                 tweet.user.beers=+1
                 tweet.user.save()
 
-                beer_code.user_id=tweet.user.user_id
+                beer_code.user=tweet.user
                 beer_code.timestamp=datetime.datetime.now()
                 beer_code.used=True
                 beer_code.save()

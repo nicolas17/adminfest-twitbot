@@ -17,7 +17,7 @@ class User(BaseModel):
     ORM model of the User table
     """
     #username = CharField(unique=True)
-    user_id = TextField(unique=True)
+    user_id = BigIntegerField(primary_key=True)
     beers = IntegerField(default=0)
 
 
@@ -26,7 +26,7 @@ class BeerCode(BaseModel):
     ORM model of the BeerCode table
     """
     beer_code = TextField(unique=True)
-    user_id = TextField(default="")
+    user = ForeignKeyField(User, null=True, related_name='beer_codes')
     timestamp = DateTimeField(default="")
     used = BooleanField(default=False)
 
