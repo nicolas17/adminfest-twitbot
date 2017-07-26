@@ -34,32 +34,28 @@ for n in range(50):
     if (tweet.user.beers <= config.max_beers()):
         print ("Assign Beer to user")
         #Get Free Beer Code
-        beer_codes = BeerCode.select().where(BeerCode.used==False)
-        #Fix this shit while getting beer_codes when there are none available it breaks.
-        for beer_code in beer_codes:
-            if beer_code is not None:
-                #Assign beer code to tweet
-                tweet.beer_code=beer_code.beer_code
-                tweet.process_try=+1
+        try:
+            beer_code = BeerCode.get(BeerCode.used==False)
+        except peewee.DoesNotExist:
+            print("Out of beer!")
+            break # this will quit the outer loop, so the tweet will not be saved and will remain with processed=False!
 
-                #Try to send the message to the user
+        #Assign beer code to tweet
+        tweet.beer_code=beer_code.beer_code
+        tweet.process_try=+1
 
-                #if success bla
+        #Try to send the message to the user
 
-                #if it fails bla bla bla
-                tweet.user.beers=+1
-                tweet.user.save()
+        #if success bla
 
-                beer_code.user=tweet.user
-                beer_code.timestamp=datetime.datetime.now()
-                beer_code.used=True
-                beer_code.save()
-            else:
-                print("Out of Beer")
-                tweet.beer_code = "FUCK"
-                tweet.process_try = +1
+        #if it fails bla bla bla
+        tweet.user.beers=+1
+        tweet.user.save()
 
-
+        beer_code.user=tweet.user
+        beer_code.timestamp=datetime.datetime.now()
+        beer_code.used=True
+        beer_code.save()
     else:
         print ("Quota exceeded")
 
