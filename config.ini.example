@@ -7,3 +7,6 @@ access_token_secret=
 [sysarmy]
 max_beers=3
 hashtag=downtime99999
+
+[slack]
+web_hook_url=https://hooks.slack.com/services/asdfasdfasdf
