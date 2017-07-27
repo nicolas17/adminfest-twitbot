@@ -18,6 +18,7 @@ class User(BaseModel):
     """
     #username = CharField(unique=True)
     user_id = BigIntegerField(primary_key=True)
+    user_str = TextField(default="")
     beers = IntegerField(default=0)
 
 
@@ -43,7 +44,10 @@ class Tweet(BaseModel):
     is_published = BooleanField(default=True)
     processed = BooleanField(default=False)
     process_try = IntegerField(default=0)
+    dm = BooleanField(default=False)
+    dm_try = IntegerField(default=0)
     beer_code = TextField(default="")
+    retweet = BooleanField(default=False)
 
 
 if __name__ == "__main__":

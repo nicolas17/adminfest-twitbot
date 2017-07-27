@@ -37,7 +37,7 @@ class StdOutListener(StreamListener):
         # aca levantar el status y encolarlo para el worker.
         print(status.id,' ', status.text)
 
-        new_user, _ = User.get_or_create(user_id=status.user.id)
+        new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name)
         try:
             tweet = Tweet.select().where(Tweet.status_id == status.id).get()
         except Tweet.DoesNotExist:
@@ -46,7 +46,7 @@ class StdOutListener(StreamListener):
         if tweet is not None:
             print("stream: already saved", status.user.id, status.id_str)
         else:
-            new_twit = Tweet.create(user=new_user, status_id=status.id, text=status.text,json=jsonpickle.encode(status._json, unpicklable=False))
+            new_twit = Tweet.create(user=new_user, status_id=status.id, retweet=hasattr(status, 'retweeted_status'), text=status.text,json=jsonpickle.encode(status._json, unpicklable=False))
             new_twit.save()
             print("stream: new ", status.user.id)
 
@@ -54,6 +54,8 @@ class StdOutListener(StreamListener):
 
 
     #def on_private_message
+        # TODO hay que monitorear inbox para aceptar RETURN de gente que no venga. O sino darle tickets a todos
+        # TODO y hacer que la ticketera corte a las 200 consumisiones.
         # tambien podemos monitorear el inbox de DMs y otros estados.
 
     def on_error(self, status):
@@ -78,8 +80,7 @@ if __name__ == '__main__':
     # Tell the Cursor method that we want to use the Search API (api.search)
     # Also tell Cursor our query, and the maximum number of tweets to return
     for status in Cursor(api.search, q=searchQuery).items(maxTweets):
-
-        new_user, _ = User.get_or_create(user_id=status.user.id)
+        new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name)
         try:
             tweet = Tweet.select().where(Tweet.status_id == status.id).get()
         except Tweet.DoesNotExist:
@@ -88,7 +89,7 @@ if __name__ == '__main__':
         if tweet is not None:
             print("search: already saved", status.user.id, status.id_str)
         else:
-            new_twit = Tweet.create(user=new_user, status_id=status.id, text=status.text,json=jsonpickle.encode(status._json, unpicklable=False))
+            new_twit = Tweet.create(user=new_user, status_id=status.id, retweet=hasattr(status, 'retweeted_status'), text=status.text,json=jsonpickle.encode(status._json, unpicklable=False))
             new_twit.save()
             print("search: new ", status.user.id)
 
@@ -97,9 +98,13 @@ if __name__ == '__main__':
 
     # Display how many tweets we have collected
     print("Downloaded {0} tweets".format(tweetCount))
-    exit(0)
+    ##exit(0)
     # http://www.dealingdata.net/2016/07/23/PoGo-Series-Tweepy/
     print("Starting stream to db")
     stream = Stream(auth, l)
-    # stream.filter(track=['downtime99999'])
-    stream.filter(track=['bitch'])
+    try:
+        stream.filter(track=['downtime99999'])
+        #stream.filter(track=['bitch'])
+    except(KeyboardInterrupt, SystemExit):
+        stream.disconnect()
+        print("Goodbye :)")
