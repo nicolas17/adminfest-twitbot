@@ -82,7 +82,7 @@ while True:
 
     # TODO if tweet is RT, skip those are not valid.
     if tweet.retweet:
-        print("this is a RT, discarding //", tweet.id, tweet.text)
+        print("this is a RT, discarding //", tweet.id, str(tweet.text))
         tweet.beer_code = "RT"
         tweet.processed = True
         tweet.save()
