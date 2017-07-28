@@ -37,7 +37,7 @@ class StdOutListener(StreamListener):
         # aca levantar el status y encolarlo para el worker.
         print(status.id,' ', status.text)
 
-        new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name)
+        new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name, location=status.user.location, timezone=status.user.time_zone)
         try:
             tweet = Tweet.select().where(Tweet.status_id == status.id).get()
         except Tweet.DoesNotExist:
@@ -52,11 +52,18 @@ class StdOutListener(StreamListener):
 
         return True
 
-
-    #def on_private_message
+    def on_direct_messag(self, status):
+        # def on_data(self, status):
         # TODO hay que monitorear inbox para aceptar RETURN de gente que no venga. O sino darle tickets a todos
         # TODO y hacer que la ticketera corte a las 200 consumisiones.
         # tambien podemos monitorear el inbox de DMs y otros estados.
+        print(status)
+        if 'CRITICAL' in status.text:
+            # buscar al usuario y invalidarlo aumentando la cantidad de birra a 999
+            new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name)
+            new_user.beers = 999
+            new_user.save()
+            print("invalidated ", status.user.id)
 
     def on_error(self, status):
         print(status)
@@ -80,7 +87,7 @@ if __name__ == '__main__':
     # Tell the Cursor method that we want to use the Search API (api.search)
     # Also tell Cursor our query, and the maximum number of tweets to return
     for status in Cursor(api.search, q=searchQuery).items(maxTweets):
-        new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name)
+        new_user, _ = User.get_or_create(user_id=status.user.id, user_str=status.user.screen_name, location=status.user.location, timezone=status.user.time_zone)
         try:
             tweet = Tweet.select().where(Tweet.status_id == status.id).get()
         except Tweet.DoesNotExist:
@@ -103,6 +110,7 @@ if __name__ == '__main__':
     print("Starting stream to db")
     stream = Stream(auth, l)
     try:
+
         stream.filter(track=['downtime99999'])
         #stream.filter(track=['bitch'])
     except(KeyboardInterrupt, SystemExit):

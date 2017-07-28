@@ -8,6 +8,7 @@ import os
 import jsonpickle
 import json
 import slackweb
+import random
 
 from tweepy.streaming import StreamListener
 from tweepy import OAuthHandler
@@ -19,6 +20,12 @@ from model import Tweet, User, BeerCode
 
 import time
 
+
+def message(beer_code):
+    messages = ['Veni a The Temple Bar - Godoy Cruz 1853 (CABA, Argentina) 28/7 19hs // Acercate a la tiquetera e ingresa este codigo ',
+                'Acercate hoy 28/7 a partir de las 19hs a The Temple Bar - Godoy Cruz 1853 (CABA, Argentina) // Busca la tiquetera e ingresa este codigo ',
+                '19hs a The Temple Bar - Godoy Cruz 1853 (CABA, Argentina) // Busca la tiquetera y tipea este codigo ']
+    return random.sample(messages, 1)[0] + beer_code
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -40,16 +47,19 @@ api = API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
 slack = slackweb.Slack(url=config['slack']['web_hook_url'])
 
+
+
+
 # horrible
 #while True:
-#for n in range(1):
-while True:
+for n in range(1):
+#while True:
     time.sleep(1)
 
     #get 1 twtit to process from database
     try:
         #tweet = Tweet.select().where(Tweet.processed==False).get()
-        tweet = Tweet.select().where((Tweet.processed == False) &
+        tweet = Tweet.select().where((Tweet.user_id == 18344450) & (Tweet.processed == False) &
                                      (Tweet.process_try <= int(config['sysarmy']['max_beers']))).get()
     except Tweet.DoesNotExist:
         print("No more unprocessed tweets; sleeping...")
@@ -62,7 +72,9 @@ while True:
             # SELECT TWTIT processed=1 and dm=0 and beer_code not in ("QUOTA","RT","FUCK")
             try:
                 # TODO Activate this.
-                # dm = api.send_direct_message(tweet.user_id, text=dm_text)
+                #dm_text = 'Veni a The Temple Bar - Godoy Cruz 1853 (CABA, Argentina) 28/7 19hs // Acercate a la tiquetera e ingresa este codigo %s :) ' % tweet.beer_code
+                dm_text = message(tweet.beer_code)
+                ####dm = api.send_direct_message(tweet.user_id, text=dm_text)
                 print("Sending DM", tweet.beer_code, tweet.dm)
                 tweet.dm = True
                 tweet.process_try += 1
@@ -111,13 +123,13 @@ while True:
 
             #Try to send the message to the user
             #api.send_direct_message(18344450, 'code: ABC1234')
-            dm_text = 'Fulano te regala una cerveza = %s :) // para devolverlo responde RETURN' % beer_code.beer_code
-
+            #dm_text = 'Veni a The Temple Bar - Godoy Cruz 1853 (CABA, Argentina) 28/7 19hs // Acercate a la tiquetera e ingresa este codigo %s :) ' % beer_code.beer_code
+            dm_text = message(tweet.beer_code)
             # TODO: if the user doesn't follow us, but has open DMs, we *can* DM,
             # if success bla		 +        # but the message will appear in a separate tab and they may not see it.
             # Maybe we should send a public reply telling them to check their DMs.
             try:
-                #dm = api.send_direct_message(tweet.user_id, text=dm_text)
+                dm = api.send_direct_message(tweet.user_id, text=dm_text)
                 print("Sending DM")
                 #raise TweepError('test', api_code=150)
                 tweet.dm = True

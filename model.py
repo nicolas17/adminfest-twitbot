@@ -20,6 +20,8 @@ class User(BaseModel):
     user_id = BigIntegerField(primary_key=True)
     user_str = TextField(default="")
     beers = IntegerField(default=0)
+    location = TextField(default="",null=True)
+    timezone = TextField(default="", null=True)
 
 
 class BeerCode(BaseModel):
@@ -67,8 +69,8 @@ if __name__ == "__main__":
         print("Tweet table already exists!")
 
     #generate codes
-    with db.atomic():
-        for n in range(200):
-            code = gen_hex_colour_code()
-            beer_code = BeerCode.create(beer_code=code)
-            beer_code.save()
+    #with db.atomic():
+    #    for n in range(1000):
+    #        code = gen_hex_colour_code()
+    #        beer_code = BeerCode.create(beer_code=code)
+    #        beer_code.save()
